@@ -55,6 +55,23 @@
 :root[data-theme="daylight"] .dialog,:root[data-theme="blush"] .dialog,:root[data-theme="sage"] .dialog{box-shadow:0 20px 65px #2833433b}
 @media(max-width:480px){.question{padding:8px 10px 12px}.theme-btn{font-size:16px;min-height:101px}}
 
+
+/* V5: consistent answer surfaces, including on light themes. */
+.choice,.choice:nth-child(even){background:var(--panel);border-color:var(--answer-outline)}
+/* The two feedback states are intentionally stronger than default answer styling. */
+.choice.correct{background:var(--success-bg);border-color:var(--success);color:var(--success-ink)}
+.choice.wrong{background:var(--red-d);border-color:var(--red);color:var(--red-ink)}
+/* Use theme-aware text on the quit button; light themes need dark red. */
+.btn.danger{color:var(--red-ink)}
+/* Keep all five difficulty choices on a single row, even on phones. */
+@media(max-width:560px){
+ .level-controls{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+ .level-btn,.level-btn:last-child{grid-column:auto;min-height:62px;padding:7px 1px;font-size:clamp(12px,3.2vw,16px);line-height:1.25;overflow-wrap:normal}
+ .level-btn:last-child{font-size:clamp(12px,3.2vw,15px)}
+ .level-label-full{display:none}
+ .level-label-mobile{display:inline}
+}
+@media(min-width:561px){.level-label-mobile{display:none}}
 </style>
 </head>
 <body><main class="app">
@@ -90,7 +107,7 @@ const fmtTime=ms=>{const secs=Math.floor(ms/1000),m=Math.floor(secs/60),s=secs%6
 function show(id){for(const s of document.querySelectorAll('.screen'))s.classList.toggle('active',s.id===id);phase=id;window.scrollTo(0,0)}
 function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),1700)}
 function home(){stopTimers();closeQuit();$('home-config').textContent=`${fa(config.batch)} سؤال · ${OPS.filter(([id])=>config.levels[id]>0).map(([id,label])=>label).join('، ')||'هیچ عملیاتی فعال نیست'}`;show('home')}
-function renderSettings(){const root=$('levels');root.replaceChildren();for(const [id,label] of OPS){const card=document.createElement('div');card.className='setting-card';const head=document.createElement('div');head.className='setting-title';const title=document.createElement('span');title.textContent=label;const cur=document.createElement('span');cur.className='level-current';cur.textContent=LABELS[config.levels[id]];head.append(title,cur);const row=document.createElement('div');row.className='level-controls';row.setAttribute('role','group');row.setAttribute('aria-label',`سطح ${label}`);LABELS.forEach((txt,v)=>{const b=document.createElement('button');b.className='level-btn';b.textContent=txt;b.setAttribute('aria-pressed',String(config.levels[id]===v));b.onclick=()=>{config.levels[id]=v;cur.textContent=txt;for(const c of row.children)c.setAttribute('aria-pressed',String(c===b))};row.append(b)});card.append(head,row);root.append(card)}document.querySelector(`input[name="wrong-mode"][value="${config.wrongMode}"]`).checked=true;const themes=$('themes');themes.replaceChildren();for(const [id,label,css] of THEMES){const b=document.createElement('button');b.className='theme-btn '+css;b.innerHTML=`<span class="theme-swatch" aria-hidden="true"></span><span>${label}</span>`;b.setAttribute('aria-pressed',String(config.theme===id));b.onclick=()=>{config.theme=id;applyTheme();for(const c of themes.children)c.setAttribute('aria-pressed',String(c===b))};themes.append(b)}const sizes=$('batch-sizes');sizes.replaceChildren();for(const n of [10,20,30,50]){const b=document.createElement('button');b.textContent=fa(n);b.setAttribute('aria-pressed',String(config.batch===n));b.onclick=()=>{config.batch=n;for(const c of sizes.children)c.setAttribute('aria-pressed',String(c===b))};sizes.append(b)}}
+function renderSettings(){const root=$('levels');root.replaceChildren();for(const [id,label] of OPS){const card=document.createElement('div');card.className='setting-card';const head=document.createElement('div');head.className='setting-title';const title=document.createElement('span');title.textContent=label;const cur=document.createElement('span');cur.className='level-current';cur.textContent=LABELS[config.levels[id]];head.append(title,cur);const row=document.createElement('div');row.className='level-controls';row.setAttribute('role','group');row.setAttribute('aria-label',`سطح ${label}`);LABELS.forEach((txt,v)=>{const b=document.createElement('button');b.className='level-btn';if(v===4){b.innerHTML='<span class="level-label-full">ریاضیدان</span><span class="level-label-mobile" aria-hidden="true">ریاضی<br>دان</span>';b.setAttribute('aria-label',txt)}else b.textContent=txt;b.setAttribute('aria-pressed',String(config.levels[id]===v));b.onclick=()=>{config.levels[id]=v;cur.textContent=txt;for(const c of row.children)c.setAttribute('aria-pressed',String(c===b))};row.append(b)});card.append(head,row);root.append(card)}document.querySelector(`input[name="wrong-mode"][value="${config.wrongMode}"]`).checked=true;const themes=$('themes');themes.replaceChildren();for(const [id,label,css] of THEMES){const b=document.createElement('button');b.className='theme-btn '+css;b.innerHTML=`<span class="theme-swatch" aria-hidden="true"></span><span>${label}</span>`;b.setAttribute('aria-pressed',String(config.theme===id));b.onclick=()=>{config.theme=id;applyTheme();for(const c of themes.children)c.setAttribute('aria-pressed',String(c===b))};themes.append(b)}const sizes=$('batch-sizes');sizes.replaceChildren();for(const n of [10,20,30,50]){const b=document.createElement('button');b.textContent=fa(n);b.setAttribute('aria-pressed',String(config.batch===n));b.onclick=()=>{config.batch=n;for(const c of sizes.children)c.setAttribute('aria-pressed',String(c===b))};sizes.append(b)}}
 function saveSettings(){config.wrongMode=document.querySelector('input[name="wrong-mode"]:checked').value;persist();home()}
 const rand=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const choice=a=>a[rand(0,a.length-1)];
